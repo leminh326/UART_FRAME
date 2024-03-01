@@ -41,6 +41,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -63,9 +65,10 @@ const osThreadAttr_t UartTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void *argument);
-void StartUartTask(void *argument);
+extern void StartUartTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -104,6 +107,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
@@ -220,7 +224,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 38400;
+  huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -236,6 +240,25 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
 
@@ -292,24 +315,6 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_StartUartTask */
-/**
-* @brief Function implementing the UartTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartUartTask */
-void StartUartTask(void *argument)
-{
-  /* USER CODE BEGIN StartUartTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartUartTask */
 }
 
 /**
